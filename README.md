@@ -1,45 +1,79 @@
-# DealBook
+# DealBook - Brand Deal CRM for Indian Creators
 
-Brand deal CRM for Content Creators on Instagram and YouTube.
+A web app to help Indian content creators track their brand deals from first contact to payment received.
 
-## The problem
+## Setup Instructions
 
-Most creators manage brand deals across WhatsApp, Gmail, Notes, and spreadsheets simultaneously. There's no single place to track who contacted them, what was agreed, when content is due, and whether they've been paid.
+### 1. Install Dependencies
+```bash
+npm install
+```
 
-## What DealBook does
+### 2. Configure Environment Variables
 
-- **Kanban board** — track every deal from first contact to payment received
-- **Calendar view** — see content deadlines and payment due dates in one place
-- **Payment tracker** — know exactly who owes you money and how overdue they are
-- **Dashboard** — monthly summary of deals confirmed, revenue pending, and overdue payments
+Copy `.env.local.example` to `.env.local` and add your Supabase credentials:
+```
+VITE_SUPABASE_URL=your_supabase_project_url
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+```
 
-## Built for Indian creators
+### 3. Set Up Supabase
 
-- All amounts in ₹ with Indian number formatting
-- Designed around the WhatsApp-first, brand-deal-heavy workflow of mid-size Indian creators
-- GST invoice generation coming in v2
+Create a table in Supabase with the following SQL:
 
-## Tech stack
+```sql
+create table deals (
+  id uuid default gen_random_uuid() primary key,
+  user_id uuid references auth.users not null,
+  brand_name text not null,
+  contact_name text,
+  contact_whatsapp text,
+  platform text,
+  deliverable text,
+  rate_inr numeric,
+  status text default 'lead',
+  deadline date,
+  posted_date date,
+  invoice_date date,
+  payment_date date,
+  notes text,
+  created_at timestamptz default now()
+);
 
-- React + Vite + Tailwind CSS
-- Supabase (database + auth)
+alter table deals enable row level security;
+create policy "own deals" on deals
+  using (auth.uid() = user_id);
+```
+
+Also enable Google OAuth in Supabase Authentication settings.
+
+### 4. Run Development Server
+
+```bash
+npm run dev
+```
+
+The app will open at http://localhost:5173
+
+## Features
+
+- **Board Tab**: Kanban board with drag-and-drop to manage deal status
+- **Calendar Tab**: Monthly calendar view showing deadlines and payment dates
+- **Payments Tab**: Track invoiced and paid deals with overdue indicators
+- **Dashboard Tab**: Monthly metrics and deal status overview
+
+## Tech Stack
+
+- React + Vite
+- Tailwind CSS
+- Supabase (authentication + database)
 - react-big-calendar
-- @dnd-kit/core
-- Vercel (hosting)
+- @dnd-kit (drag and drop)
 
-## Running locally
+## Deployment
 
-1. Clone the repo
-
+Deploy to Vercel:
 ```bash
-   git clone https://github.com/YOUR_USERNAME/dealbook.git
-   cd dealbook
+npm run build
+# Push to GitHub and connect with Vercel
 ```
-
-2. Install dependencies
-
-```bash
-   npm install
-```
-
-3. Create a `.env.local` file in the root
